@@ -1,4 +1,4 @@
-import {messageRenderer} from "./utils/rendererUtils.js";
+import {messageRenderer, patchCss} from "./utils/rendererUtils.js";
 
 const pluginName = '[Echo-Message]'
 
@@ -6,6 +6,11 @@ const pluginName = '[Echo-Message]'
 export const onSettingWindowCreated = (view) => {
     // view 为 Element 对象，修改将同步到插件设置界面
 }
+
+function onLoad(){
+    patchCss()
+}
+onLoad()//调用onLoad
 
 async function render() {
     try {

@@ -3,18 +3,19 @@ const pluginName = '[Echo-Message]'
 export async function messageRenderer(allChats) {
     for (let i = 0; i < allChats.length; i++) {
         try {
-            const currentMsgContent = allChats[i].querySelector('.message-content');
-            const prevMsgContent = i - 1 < 0 ? undefined :
-                allChats[i - 1].querySelector('.message-content');
-            const nextMsgContent = i + 1 === allChats.length ? undefined :
-                allChats[i + 1].querySelector('.message-content');
+            const msgContentContainer = allChats[i + 1]?.querySelector('.msg-content-container')
+            if (msgContentContainer?.classList.contains('em-msg')) continue//已经改过的不要改
+
+            const currentMsgContent = allChats[i]?.querySelector('.message-content');
+            const prevMsgContent = i - 1 < 0 ? undefined : allChats[i - 1]?.querySelector('.message-content');
+            const nextMsgContent = i + 1 === allChats.length ? undefined : allChats[i + 1]?.querySelector('.message-content');
             //判断有没有越界，越界了就开始下一个循环。
             if (!(prevMsgContent || nextMsgContent)) continue
             //判断是否符合+1条件
             if (!msgChecker(prevMsgContent, currentMsgContent, nextMsgContent)) continue
 
             //没问题！应该对下一条消息加上+1标签。
-            const msgContentContainer = allChats[i + 1].querySelector('.msg-content-container')
+            console.log(pluginName+'消息检查成功')
             appendPlusOneTag(msgContentContainer)//添加tag
 
         } catch (e) {
@@ -25,8 +26,21 @@ export async function messageRenderer(allChats) {
 
 
 function appendPlusOneTag(msgContentContainer) {
-    msgContentContainer.classList.add('.plus-one')//先修改父元素样式
+    const imgElement = document.createElement('img')
+    imgElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#66ccff">
+<path d="M250-292.31v-120H130v-60h120v-120h60v120h120v60H310v120h-60Zm391.54 71.54v-428.77l-96.62 68.31-34.46-51.54 149.39-106.46h47.84v518.46h-66.15Z"/>
+</svg>`
+    msgContentContainer.classList.add('em-msg')//先修改父元素样式
 
+    if (msgContentContainer?.classList.contains('container--others'))//说明是别人发的消息
+    {
+        imgElement.classList.add('em-plus-one-img-right')
+    } else {
+        imgElement.classList.add('em-plus-one-img-left')
+    }
+
+    msgContentContainer.appendChild(imgElement)
+    console.log(pluginName+'tag添加成功')
 }
 
 /**
@@ -39,7 +53,9 @@ function msgChecker(prevMsgContent, currentMsgContent, nextMsgContent) {
     const prevMsgs = msgExtractor(prevMsgContent)
     const currentMsgs = msgExtractor(currentMsgContent)
     const nextMsgs = msgExtractor(nextMsgContent)
-    return JSON.stringify(prevMsgs) === JSON.stringify(currentMsgs) && JSON.stringify(currentMsgs) !== JSON.stringify(nextMsgs)
+    //console.log(JSON.stringify(prevMsgs), JSON.stringify(currentMsgs), JSON.stringify(nextMsgs))
+    return JSON.stringify(prevMsgs) === JSON.stringify(currentMsgs) &&
+        JSON.stringify(currentMsgs) !== JSON.stringify(nextMsgs)
 }
 
 /**
@@ -48,8 +64,9 @@ function msgChecker(prevMsgContent, currentMsgContent, nextMsgContent) {
  * @returns {*[]}
  */
 function msgExtractor(msgContent) {
-    return [...msgContent.querySelectorAll('.text-normal').map(textElement => textElement.innerText),
-        ...msgContent.querySelectorAll('.image-content').map(imgElement => imgElement.src)]
+    if (!msgContent?.querySelectorAll) return []
+    return [...(Array.from(msgContent?.querySelectorAll('.text-normal')).map(textElement => textElement?.innerText)),
+        ...(Array.from(msgContent?.querySelectorAll('.image-content')).map(imgElement => imgElement?.src))]
 }
 
 export function patchCss() {
@@ -60,21 +77,44 @@ export function patchCss() {
     style.id = "echo-message-css";
 
     let sHtml = `
-.plus-one-other-msg {
+.em-msg {
     position: relative;
     overflow: unset !important;
-    margin-right: 3px;
 }
-.plus-one-self-msg {
-    position: relative;
-    overflow: unset !important;
-    margin-left: 3px;
+
+.em-plus-one-img-right {
+    position: absolute;
+    left: calc(100% + 6px);
+    top:50%;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    opacity: 0.8;
+    color: var(--text-color);
+    background-color: var(--background-color-05);
+    backdrop-filter: blur(28px);
+    box-shadow: var(--box-shadow);
+    transition: 300ms;
+}
+
+.em-plus-one-img-left {
+    position: absolute;
+    right: calc(100% + 6px);
+    top:50%;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    opacity: 0.8;
+    color: var(--text-color);
+    background-color: var(--background-color-05);
+    backdrop-filter: blur(28px);
+    box-shadow: var(--box-shadow);
+    transition: 300ms;
 }
 
 `
 
     style.innerHTML = sHtml
-
     document.getElementsByTagName('head')[0].appendChild(style)
     console.log(pluginName + 'css加载完成')
 }
