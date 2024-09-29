@@ -54,7 +54,8 @@ function msgChecker(prevMsgContent, currentMsgContent, nextMsgContent) {
 function msgExtractor(msgContent) {
     if (!msgContent?.querySelectorAll) return []
     return [...(Array.from(msgContent?.querySelectorAll('.text-normal')).map(textElement => textElement?.innerText)),
-        ...(Array.from(msgContent?.querySelectorAll('.image-content')).map(imgElement => imgElement?.src))]
+        ...(Array.from(msgContent?.querySelectorAll('.image-content')).map(imgElement => imgElement?.src)),
+        ...(Array.from(msgContent?.querySelectorAll('.markdown-element')).map(markdownElement => markdownElement.children))]
 }
 
 /**
@@ -76,8 +77,42 @@ function appendPlusOneTag(msgContentContainer) {
     if (msgContentContainer?.classList.contains('container--others'))//说明是别人发的消息
     {
         svgContainer.classList.add('em-plus-one-img-right')
+        svgContainer.addEventListener('mouseenter', () => {
+            svgContainer.style.transform = "translateX(50%) scale(1.1)";
+            svgContainer.style.boxShadow = "0 0 10px rgba(17,183,234,0.5)";
+        })
+        svgContainer.addEventListener('mouseleave', () => {
+            svgContainer.style.transform = "translateX(50%) scale(1)";
+            svgContainer.style.boxShadow = "none"; // 恢复原来的样式
+        })
+        svgContainer.addEventListener('mousedown', () => {
+            svgContainer.style.transform = "translateX(50%) scale(0.9)"; // 按下时缩小
+            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+        });
+        svgContainer.addEventListener('mouseup', () => {
+            svgContainer.style.transform = "translateX(50%) scale(1)"; // 按下时缩小
+            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+        });
+
+
     } else {
         svgContainer.classList.add('em-plus-one-img-left')
+        svgContainer.addEventListener('mouseenter', () => {
+            svgContainer.style.transform = "translateX(-50%) scale(1.1)";
+            svgContainer.style.boxShadow = "0 0 10px rgba(17,183,234,0.5)";
+        })
+        svgContainer.addEventListener('mouseleave', () => {
+            svgContainer.style.transform = "translateX(-50%) scale(1)";
+            svgContainer.style.boxShadow = "none"; // 恢复原来的样式
+        })
+        svgContainer.addEventListener('mousedown', () => {
+            svgContainer.style.transform = "translateX(-50%) scale(0.9)"; // 按下时缩小
+            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+        });
+        svgContainer.addEventListener('mouseup', () => {
+            svgContainer.style.transform = "translateX(-50%) scale(1)"; // 按下时缩小
+            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+        });
     }
 
     setTimeout(() => {
@@ -86,6 +121,9 @@ function appendPlusOneTag(msgContentContainer) {
         svgContainer.style.opacity = "0.9";
         svgContainer.style.border = "2px solid #66ccff";
     }, 100);
+
+    plusOneListener(svgContainer)//添加事件监听器。
+
     console.log(pluginName + '+1tag添加成功')
 }
 
@@ -107,6 +145,26 @@ function removePlusOneTag(msgContentContainer) {
 
 }
 
+function plusOneListener(svgContainer) {
+    svgContainer.addEventListener('click', async () => {
+        //准备复读并发送消息.
+        const msgID = svgContainer.closest('.ml-item').id
+        const curAioData = app.__vue_app__.config.globalProperties.$store.state.common_Aio.curAioData
+        const peerUid = curAioData.header.uid
+        const chatType=curAioData.chatType
+        console.log('拿到的消息ID为' + msgID)
+        //发送IPC消息
+        await window.echo_message.invokeNative("ns-ntApi", "nodeIKernelMsgService/forwardMsgWithComment", false, window.webContentId,
+            {
+                "msgIds": [msgID],
+                "msgAttributeInfos": new Map(),
+                "srcContact": {"chatType": chatType, "peerUid": peerUid, "guildId": ""},
+                "dstContacts": [{"chatType": chatType, "peerUid": peerUid, "guildId": ""}],
+                "commentElements": []
+            }, null)
+    })
+}
+
 export function patchCss() {
     console.log(pluginName + 'css加载中')
 
@@ -120,18 +178,19 @@ export function patchCss() {
     overflow: unset !important;
 }
 
-.em-svg-container:hover {
-    opacity: 1; /* 鼠标悬停时完全不透明 */
-    transform: scale(1.1); /* 放大效果 */
-}
+/*.em-svg-container:hover {*/
+/*    transform: scale(1.1) !important; !* 放大效果 *!*/
+/*    box-shadow: 0 0 10px rgba(17,183,234,0.5); !* 悬停时增加阴影 *!*/
+/*}*/
 
-.em-svg-container:active {
-    transform: scale(0.95); /* 点击时缩小效果 */
-}
+/*.em-svg-container:active {*/
+/*    transform: scale(0.95) !important; !* 点击时缩小效果 *!*/
+/*    box-shadow: 0 0 5px rgba(17,183,234,0.5); !* 悬停时增加阴影 *!*/
+/*}*/
 
 .em-plus-one-img-right {
     position: absolute;
-    left: calc(95%);
+    left: calc(100% - 5px);
     width: 25px;
     height: 25px;
     border-radius: 50%;
@@ -146,7 +205,7 @@ export function patchCss() {
 
 .em-plus-one-img-left {
     position: absolute;
-    right: calc(95%);
+    right: calc(100% - 5px);
     width: 25px;
     height: 25px;
     border-radius: 50%;
@@ -163,4 +222,38 @@ export function patchCss() {
     style.innerHTML = sHtml
     document.getElementsByTagName('head')[0].appendChild(style)
     console.log(pluginName + 'css加载完成')
+}
+
+const textElement = {
+    elementType: 1,
+    elementId: '',
+    textElement: {
+        content: '',
+        atType: 0,
+        atUid: '',
+        atTinyId: '',
+        atNtUid: ''
+    }
+}
+
+const imgElement = {
+    elementType: 2,
+    elementId: '',
+    picElement: {
+        md5HexStr: '57e0870d4d841b95f2ab50c5bce4f917',
+        picWidth: 128,
+        picHeight: 136,
+        fileName: '57e0870d4d841b95f2ab50c5bce4f917.jpg',
+        fileSize: '6868',
+        original: true,
+        picSubType: 1,
+        sourcePath: 'F:\\QQ文件\\1369727119\\nt_qq\\nt_data\\Emoji\\emoji-recv\\2024-09\\Ori\\57e0870d4d841b95f2ab50c5bce4f917.jpg',
+        thumbPath: undefined,
+        picType: 1000,
+        fileUuid: '',
+        fileSubId: '',
+        thumbFileSize: 0,
+        summary: ''
+    },
+    extBufForUI: ''
 }
