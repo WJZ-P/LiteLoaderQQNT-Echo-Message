@@ -106,7 +106,7 @@
 
 ## ⭐ Star 历史
 
-[![Stargazers over time](https://starchart.cc/WJZ-P/LiteLoaderQQNT-Encrypt-Chat.svg?variant=adaptive)](https://starchart.cc/WJZ-P/LiteLoaderQQNT-Echo-Message)
+[![Stargazers over time](https://starchart.cc/WJZ-P/LiteLoaderQQNT-Echo-Message.svg?variant=adaptive)](https://starchart.cc/WJZ-P/LiteLoaderQQNT-Echo-Message)
 <!-- links -->
 
 [your-project-path]:WJZ-P/LiteLoaderQQNT-Echo-Message
