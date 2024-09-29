@@ -10,7 +10,7 @@ export async function messageRenderer(allChats) {
 
             if (preMsgConContainer?.querySelector('.em-svg-container')) removePlusOneTag(msgContentContainer)//只保留一个svg
 
-            if (msgContentContainer?.classList.contains('em-msg')) continue//已经改过的不要改
+            if (msgContentContainer?.classList.contains('em-msg-container')) continue//已经改过的不要改
 
             const currentMsgContent = allChats[i]?.querySelector('.message-content');
             const prevMsgContent = i - 1 < 0 ? undefined : allChats[i - 1]?.querySelector('.message-content');
