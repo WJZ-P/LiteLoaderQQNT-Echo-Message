@@ -18,16 +18,16 @@
 <!-- PROJECT LOGO -->
 
 <p align="center">
-  <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Encrypt-Chat/">
-    <img src="src/assests/chat_blue.svg" alt="Logo" width="150" height="150" style="color: #66ccff;margin: 0">
+  <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Echo-Message/">
+    <img src="src/assests/plus_one.svg" alt="Logo" width="150" height="150" style="color: #66ccff;margin: 0">
   </a>
-  <h1 align="center">Encrypt Chat</h1>
+  <h1 align="center">Echo Message</h1>
   <p align="center">
-    <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Encrypt-Chat">查看Demo</a>
+    <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Echo-Message">查看Demo</a>
     ·
-    <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Encrypt-Chat/issues">报告Bug</a>
+    <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Echo-Message/issues">报告Bug</a>
     ·
-    <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Encrypt-Chat/issues">提出新特性</a>
+    <a href="https://github.com/WJZ-P/LiteLoaderQQNT-Echo-Message/issues">提出新特性</a>
   </p>
 </p>
 

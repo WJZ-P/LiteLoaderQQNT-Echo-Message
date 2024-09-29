@@ -71,7 +71,7 @@ function appendPlusOneTag(msgContentContainer) {
     svgContainer.style.alignItems = 'center'; // 垂直居中
     svgContainer.style.cursor = 'pointer'; // 鼠标悬停时光标变为手指
 
-    msgContentContainer.classList.add('em-msg')//先修改父元素样式
+    msgContentContainer.classList.add('em-msg-container')//先修改父元素样式
     msgContentContainer.appendChild(svgContainer)
 
     if (msgContentContainer?.classList.contains('container--others'))//说明是别人发的消息
@@ -152,7 +152,7 @@ function plusOneListener(svgContainer) {
         const curAioData = app.__vue_app__.config.globalProperties.$store.state.common_Aio.curAioData
         const peerUid = curAioData.header.uid
         const chatType=curAioData.chatType
-        console.log('拿到的消息ID为' + msgID)
+        //console.log('拿到的消息ID为' + msgID)
         //发送IPC消息
         await window.echo_message.invokeNative("ns-ntApi", "nodeIKernelMsgService/forwardMsgWithComment", false, window.webContentId,
             {
@@ -173,20 +173,14 @@ export function patchCss() {
     style.id = "echo-message-css";
 
     let sHtml = `
-.em-msg {
+.em-msg-container {
     position: relative;
     overflow: unset !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
 }
-
-/*.em-svg-container:hover {*/
-/*    transform: scale(1.1) !important; !* 放大效果 *!*/
-/*    box-shadow: 0 0 10px rgba(17,183,234,0.5); !* 悬停时增加阴影 *!*/
-/*}*/
-
-/*.em-svg-container:active {*/
-/*    transform: scale(0.95) !important; !* 点击时缩小效果 *!*/
-/*    box-shadow: 0 0 5px rgba(17,183,234,0.5); !* 悬停时增加阴影 *!*/
-/*}*/
 
 .em-plus-one-img-right {
     position: absolute;
