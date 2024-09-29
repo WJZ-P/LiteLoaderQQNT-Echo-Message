@@ -1,35 +1,35 @@
 {
-    "$schema": "./manifest_schema.json",
-    "manifest_version": 4,
-    "type": "extension",
-    "name": "+1",
-    "slug": "plugin_template",
-    "description": "实现模拟手机QQ的聊天+1功能",
-    "version": "0.1.0",
-    "icon": "./icon.png",
-    "thumb": "./icon.svg",
-    "authors": [
-        {
-            "name": "LiteLoaderQQNT",
-            "link": "https://github.com/LiteLoaderQQNT"
-        }
-    ],
-    "platform": [
-        "win32",
-        "linux",
-        "darwin"
-    ],
-    "injects": {
-        "renderer": "./src/renderer.js",
-        "main": "./src/main.js",
-        "preload": "./src/preload.js"
-    },
-    "repository": {
-        "repo": "LiteLoaderQQNT/Plugin-Template",
-        "branch": "main",
-        "release": {
-            "tag": "0.1.0",
-            "file": "Plugin-Template.zip"
-        }
+  "$schema": "./manifest_schema.json",
+  "manifest_version": 4,
+  "type": "extension",
+  "name": "Echo Message",
+  "slug": "plugin_template",
+  "description": "\"我要+1！\"实现接近原生手机QQ的聊天+1功能(๑>◡<๑)",
+  "version": "1.0.0",
+  "icon": "./src/assests/plus_one.svg",
+  "thumb": "./src/assests/plus_one.svg",
+  "authors": [
+    {
+      "name": "WJZ_P",
+      "link": "https://github.com/WJZ-P"
     }
+  ],
+  "platform": [
+    "win32",
+    "linux",
+    "darwin"
+  ],
+  "injects": {
+    "renderer": "./src/renderer.js",
+    "main": "./src/main.js",
+    "preload": "./src/preload.js"
+  },
+  "repository": {
+    "repo": "WJZ-P/Echo-Message",
+    "branch": "main",
+    "release": {
+      "tag": "1.0.0",
+      "file": "Echo-Message-1.0.0.zip"
+    }
+  }
 }
