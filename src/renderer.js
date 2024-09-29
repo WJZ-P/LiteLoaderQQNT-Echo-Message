@@ -2,12 +2,12 @@ import {messageRenderer, patchCss} from "./utils/rendererUtils.js";
 
 const pluginName = '[Echo-Message]'
 
-// 打开设置界面时触发
-export const onSettingWindowCreated = (view) => {
-    // view 为 Element 对象，修改将同步到插件设置界面
-
-
-}
+// 打开设置界面时触发,不需要插件页面
+// export const onSettingWindowCreated = (view) => {
+//     // view 为 Element 对象，修改将同步到插件设置界面
+//
+//
+// }
 
 function onLoad(){
     patchCss()
