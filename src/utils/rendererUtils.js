@@ -229,25 +229,3 @@ const textElement = {
         atNtUid: ''
     }
 }
-
-const imgElement = {
-    elementType: 2,
-    elementId: '',
-    picElement: {
-        md5HexStr: '57e0870d4d841b95f2ab50c5bce4f917',
-        picWidth: 128,
-        picHeight: 136,
-        fileName: '57e0870d4d841b95f2ab50c5bce4f917.jpg',
-        fileSize: '6868',
-        original: true,
-        picSubType: 1,
-        sourcePath: 'F:\\QQ文件\\1369727119\\nt_qq\\nt_data\\Emoji\\emoji-recv\\2024-09\\Ori\\57e0870d4d841b95f2ab50c5bce4f917.jpg',
-        thumbPath: undefined,
-        picType: 1000,
-        fileUuid: '',
-        fileSubId: '',
-        thumbFileSize: 0,
-        summary: ''
-    },
-    extBufForUI: ''
-}
