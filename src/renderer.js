@@ -9,10 +9,40 @@ const pluginName = '[Echo-Message]'
 //
 // }
 
-function onLoad(){
-    patchCss()
+//app.__vue_app__.config.globalProperties?.$store?.state?.common_Aio.curAioData
+
+
+function onLoad() {
+    patchCss()//添加自己自定义的css
+    if (location.hash === "#/blank") {
+        navigation.addEventListener("navigatesuccess", onHashUpdate, {once: true});
+    } else {
+        onHashUpdate();
+    }
+
 }
+
 onLoad()//调用onLoad
+
+function onHashUpdate() {
+    const hash = location.hash;
+    if (hash === '#/blank') {
+        return
+    }
+
+    if (!(hash.includes("#/main/message") || hash.includes("#/chat"))) return;//不符合条件直接返回
+
+    const finder = setInterval(() => {
+        if (document.querySelector(".ml-list.list")) {
+            clearInterval(finder);
+            console.log(pluginName, "已检测到聊天区域");
+            const targetNode = document.querySelector(".ml-list.list");
+            //只检测childList就行了
+            const config = {attributes: false, childList: true, subtree: false,};
+            chatObserver.observe(targetNode, config);
+        }
+    }, 100);
+}
 
 async function render() {
     try {
@@ -26,30 +56,12 @@ async function render() {
 
 //下面的方案有bug,MutationObserver有概率不触发，所以选择直接写死循环
 
-//节流，防止多次渲染
-let observerRendering = false
 //聊天窗口监听器
 const chatObserver = new MutationObserver(mutationsList => {
-    if (observerRendering) return;
-
-    observerRendering = true
     setTimeout(async () => {
         await render()
-        observerRendering = false
     }, 50)
 })
-
-//聊天列表，所有聊天都显示在这里
-const finder = setInterval(async () => {
-    if (document.querySelector(".ml-list.list")) {
-        clearInterval(finder);
-        console.log(pluginName, "已检测到聊天区域");
-        const targetNode = document.querySelector(".ml-list.list");
-        //只检测childList就行了
-        const config = {attributes: false, childList: true, subtree: false,};
-        chatObserver.observe(targetNode, config);
-    }
-}, 100);
 
 
 // Vue组件挂载时触发
