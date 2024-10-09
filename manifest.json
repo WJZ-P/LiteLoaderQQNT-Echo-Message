@@ -5,7 +5,7 @@
   "name": "Echo Message",
   "slug": "plugin_template",
   "description": "\"我要+1！\"实现接近原生手机QQ的聊天+1功能(๑>◡<๑)",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "icon": "./src/assests/plus_one.svg",
   "thumb": "./src/assests/plus_one.svg",
   "authors": [
@@ -28,8 +28,8 @@
     "repo": "WJZ-P/Echo-Message",
     "branch": "main",
     "release": {
-      "tag": "v1.0.1",
-      "file": "Echo-Message-1.0.1.zip"
+      "tag": "v1.1.0",
+      "file": "Echo-Message-1.1.0.zip"
     }
   }
 }
