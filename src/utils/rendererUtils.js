@@ -1,35 +1,65 @@
 const pluginName = '[Echo-Message]'
 
-export async function messageRenderer(allChats) {
+class ListenerHandler {
+    constructor(msgContentContainer) {
+        this.msgContentContainer = msgContentContainer
+        this.leaveTimeout = undefined
+        //绑定下面函数this的上下文
+        this.handleMouseEnter = this.handleMouseEnter.bind(this);
+        this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    }
 
-    for (let i = 0; i < allChats.length; i++) {
-        try {
-            const msgContentContainer = allChats[i]?.querySelector('.msg-content-container')
+    handleMouseEnter() {
+        clearTimeout(this.leaveTimeout);
+        appendPlusOneTag(this.msgContentContainer); // 添加tag
+    }
 
-            const preMsgConContainer = i > 0 ? allChats[i - 1]?.querySelector('.msg-content-container') : null;
+    handleMouseLeave() {
+        this.leaveTimeout = setTimeout(() => {
+            removePlusOneTag(this.msgContentContainer);
+        }, 150) // 移除tag
+    };
 
-            if (preMsgConContainer?.querySelector('.em-svg-container')) removePlusOneTag(msgContentContainer)//只保留一个svg
-
-            if (msgContentContainer?.classList.contains('em-msg-container')) continue//已经改过的不要改
-
-            const currentMsgContent = allChats[i]?.querySelector('.message-content');
-            const prevMsgContent = i - 1 < 0 ? undefined : allChats[i - 1]?.querySelector('.message-content');
-            const nextMsgContent = i + 1 === allChats.length ? undefined : allChats[i + 1]?.querySelector('.message-content');
-            //判断有没有越界，越界了就开始下一个循环。
-            if (!(prevMsgContent || nextMsgContent)) continue
-            //判断是否符合+1条件
-            if (!msgChecker(prevMsgContent, currentMsgContent, nextMsgContent)) continue
-
-            //没问题！应该对下一条消息加上+1标签。
-            console.log(pluginName + '消息检查成功')
-            appendPlusOneTag(msgContentContainer)//添加tag
-
-        } catch (e) {
-            console.log(pluginName + e)
+    addCommonPlusOne() {
+        //给每一个消息都加上tag。实现在hover的时候显示，在不hover的时候取消显示。
+        if (!this.msgContentContainer.classList.contains('echo-message'))//说明这条消息还没加上事件监听器
+        {
+            this.msgContentContainer.classList.add('echo-message')
+            //准备添加事件监听器
+            this.msgContentContainer.addEventListener('mouseenter', this.handleMouseEnter)
+            this.msgContentContainer.addEventListener('mouseleave', this.handleMouseLeave)
         }
     }
 }
 
+export async function messageRenderer(allChats) {
+
+    for (let i = 0; i < allChats.length; i++) {
+        const msgContentContainer = allChats[i]?.querySelector('.msg-content-container')
+        const preMsgConContainer = i > 0 ? allChats[i - 1]?.querySelector('.msg-content-container') : null;
+        if (preMsgConContainer?.querySelector('.em-svg-container')) removePlusOneTag(msgContentContainer)//只保留一个svg
+        if (msgContentContainer?.classList.contains('em-msg-container')) continue//已经改过的不要改
+
+
+        const currentMsgContent = allChats[i]?.querySelector('.message-content');
+        const prevMsgContent = i - 1 < 0 ? undefined : allChats[i - 1]?.querySelector('.message-content');
+        const nextMsgContent = i + 1 === allChats.length ? undefined : allChats[i + 1]?.querySelector('.message-content');
+        //判断有没有越界，越界了就开始下一个循环。
+        if (!(prevMsgContent || nextMsgContent)) {
+            (new ListenerHandler(msgContentContainer)).addCommonPlusOne()
+            continue
+        }
+        //判断是否符合+1条件
+        if (!msgChecker(prevMsgContent, currentMsgContent, nextMsgContent)) {
+            (new ListenerHandler(msgContentContainer)).addCommonPlusOne()
+            continue
+        }
+
+        //没问题！应该对下一条消息加上+1标签。
+        console.log(pluginName + '消息检查成功')
+        appendPlusOneTag(msgContentContainer)//添加tag
+    }
+}
 
 /**
  * 检查当前元素是否和上一个相同，同时和下一个不同
@@ -63,6 +93,8 @@ function msgExtractor(msgContent) {
  * @param msgContentContainer
  */
 function appendPlusOneTag(msgContentContainer) {
+    if (msgContentContainer.querySelector('.em-svg-container')) return;//已经有了就不要再加了。
+
     const svgContainer = document.createElement('div');
     svgContainer.className = 'em-svg-container'
     svgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#66ccff"><path d="M250-292.31v-120H130v-60h120v-120h60v120h120v60H310v120h-60Zm391.54 71.54v-428.77l-96.62 68.31-34.46-51.54 149.39-106.46h47.84v518.46h-66.15Z"/></svg>`
@@ -124,12 +156,13 @@ function appendPlusOneTag(msgContentContainer) {
 
     plusOneListener(svgContainer)//添加事件监听器。
 
-    console.log(pluginName + '+1tag添加成功')
+    // console.log(pluginName + '+1tag添加成功')
 }
 
 
 function removePlusOneTag(msgContentContainer) {
     const svgContainer = msgContentContainer?.querySelector('.em-svg-container')
+    if (!svgContainer) return//找不到就直接退出
 
     svgContainer.style.opacity = '0'
     if (msgContentContainer?.classList.contains('container--others'))//说明是别人发的消息
@@ -151,7 +184,7 @@ function plusOneListener(svgContainer) {
         const msgID = svgContainer.closest('.ml-item').id
         const curAioData = app.__vue_app__.config.globalProperties.$store.state.common_Aio.curAioData
         const peerUid = curAioData.header.uid
-        const chatType=curAioData.chatType
+        const chatType = curAioData.chatType
         //console.log('拿到的消息ID为' + msgID)
         //发送IPC消息
         await window.echo_message.invokeNative("ns-ntApi", "nodeIKernelMsgService/forwardMsgWithComment", false, window.webContentId,
