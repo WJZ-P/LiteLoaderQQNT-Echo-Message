@@ -82,13 +82,15 @@
 
 # 使用方法
 
-## 1.复读你都不会？点+1就行，跟手机QQ操作一样
+### 1.复读你都不会？点+1就行，跟手机QQ操作一样
 
 <p align="center">
   <a>
     <img src="src/assests/markdown/repeat.png" alt="聊天界面" style="width: 200px">
   </a>
 </p>
+
+### 2.鼠标移动到任意消息上也会出现+1标记，更好地做复读机
 
 
 ## 版权说明
