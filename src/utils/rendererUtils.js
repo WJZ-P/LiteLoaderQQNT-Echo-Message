@@ -21,13 +21,16 @@ class ListenerHandler {
     };
 
     addCommonPlusOne() {
-        //给每一个消息都加上tag。实现在hover的时候显示，在不hover的时候取消显示。
-        if (!this.msgContentContainer.classList.contains('echo-message'))//说明这条消息还没加上事件监听器
-        {
-            this.msgContentContainer.classList.add('echo-message')
-            //准备添加事件监听器
-            this.msgContentContainer.addEventListener('mouseenter', this.handleMouseEnter)
-            this.msgContentContainer.addEventListener('mouseleave', this.handleMouseLeave)
+        try {
+            //给每一个消息都加上tag。实现在hover的时候显示，在不hover的时候取消显示。
+            if (!this.msgContentContainer?.classList.contains('echo-message'))//说明这条消息还没加上事件监听器
+            {
+                this.msgContentContainer.classList.add('echo-message')
+                //准备添加事件监听器
+                this.msgContentContainer.addEventListener('mouseenter', this.handleMouseEnter)
+                this.msgContentContainer.addEventListener('mouseleave', this.handleMouseLeave)
+            }
+        } catch (e) {
         }
     }
 }
@@ -56,7 +59,7 @@ export async function messageRenderer(allChats) {
         }
 
         //没问题！应该对下一条消息加上+1标签。
-        console.log(pluginName + '消息检查成功')
+        //console.log(pluginName + '消息检查成功')
         appendPlusOneTag(msgContentContainer)//添加tag
     }
 }
@@ -93,70 +96,74 @@ function msgExtractor(msgContent) {
  * @param msgContentContainer
  */
 function appendPlusOneTag(msgContentContainer) {
-    if (msgContentContainer.querySelector('.em-svg-container')) return;//已经有了就不要再加了。
+    try {
+        if (msgContentContainer.querySelector('.em-svg-container')) return;//已经有了就不要再加了。
 
-    const svgContainer = document.createElement('div');
-    svgContainer.className = 'em-svg-container'
-    svgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#66ccff"><path d="M250-292.31v-120H130v-60h120v-120h60v120h120v60H310v120h-60Zm391.54 71.54v-428.77l-96.62 68.31-34.46-51.54 149.39-106.46h47.84v518.46h-66.15Z"/></svg>`
-    svgContainer.style.display = 'flex';
-    svgContainer.style.justifyContent = 'center'; // 水平居中
-    svgContainer.style.alignItems = 'center'; // 垂直居中
-    svgContainer.style.cursor = 'pointer'; // 鼠标悬停时光标变为手指
+        const svgContainer = document.createElement('div');
+        svgContainer.className = 'em-svg-container'
+        svgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#66ccff"><path d="M250-292.31v-120H130v-60h120v-120h60v120h120v60H310v120h-60Zm391.54 71.54v-428.77l-96.62 68.31-34.46-51.54 149.39-106.46h47.84v518.46h-66.15Z"/></svg>`
+        svgContainer.style.display = 'flex';
+        svgContainer.style.justifyContent = 'center'; // 水平居中
+        svgContainer.style.alignItems = 'center'; // 垂直居中
+        svgContainer.style.cursor = 'pointer'; // 鼠标悬停时光标变为手指
 
-    msgContentContainer.classList.add('em-msg-container')//先修改父元素样式
-    msgContentContainer.appendChild(svgContainer)
+        msgContentContainer.classList.add('em-msg-container')//先修改父元素样式
+        msgContentContainer.appendChild(svgContainer)
 
-    if (msgContentContainer?.classList.contains('container--others'))//说明是别人发的消息
-    {
-        svgContainer.classList.add('em-plus-one-img-right')
-        svgContainer.addEventListener('mouseenter', () => {
-            svgContainer.style.transform = "translateX(50%) scale(1.1)";
-            svgContainer.style.boxShadow = "0 0 10px rgba(17,183,234,0.5)";
-        })
-        svgContainer.addEventListener('mouseleave', () => {
-            svgContainer.style.transform = "translateX(50%) scale(1)";
-            svgContainer.style.boxShadow = "none"; // 恢复原来的样式
-        })
-        svgContainer.addEventListener('mousedown', () => {
-            svgContainer.style.transform = "translateX(50%) scale(0.9)"; // 按下时缩小
-            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
-        });
-        svgContainer.addEventListener('mouseup', () => {
-            svgContainer.style.transform = "translateX(50%) scale(1)"; // 按下时缩小
-            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
-        });
+        if (msgContentContainer?.classList.contains('container--others'))//说明是别人发的消息
+        {
+            svgContainer.classList.add('em-plus-one-img-right')
+            svgContainer.addEventListener('mouseenter', () => {
+                svgContainer.style.transform = "translateX(50%) scale(1.1)";
+                svgContainer.style.boxShadow = "0 0 10px rgba(17,183,234,0.5)";
+            })
+            svgContainer.addEventListener('mouseleave', () => {
+                svgContainer.style.transform = "translateX(50%) scale(1)";
+                svgContainer.style.boxShadow = "none"; // 恢复原来的样式
+            })
+            svgContainer.addEventListener('mousedown', () => {
+                svgContainer.style.transform = "translateX(50%) scale(0.9)"; // 按下时缩小
+                svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+            });
+            svgContainer.addEventListener('mouseup', () => {
+                svgContainer.style.transform = "translateX(50%) scale(1)"; // 按下时缩小
+                svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+            });
 
 
-    } else {
-        svgContainer.classList.add('em-plus-one-img-left')
-        svgContainer.addEventListener('mouseenter', () => {
-            svgContainer.style.transform = "translateX(-50%) scale(1.1)";
-            svgContainer.style.boxShadow = "0 0 10px rgba(17,183,234,0.5)";
-        })
-        svgContainer.addEventListener('mouseleave', () => {
-            svgContainer.style.transform = "translateX(-50%) scale(1)";
-            svgContainer.style.boxShadow = "none"; // 恢复原来的样式
-        })
-        svgContainer.addEventListener('mousedown', () => {
-            svgContainer.style.transform = "translateX(-50%) scale(0.9)"; // 按下时缩小
-            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
-        });
-        svgContainer.addEventListener('mouseup', () => {
-            svgContainer.style.transform = "translateX(-50%) scale(1)"; // 按下时缩小
-            svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
-        });
+        } else {
+            svgContainer.classList.add('em-plus-one-img-left')
+            svgContainer.addEventListener('mouseenter', () => {
+                svgContainer.style.transform = "translateX(-50%) scale(1.1)";
+                svgContainer.style.boxShadow = "0 0 10px rgba(17,183,234,0.5)";
+            })
+            svgContainer.addEventListener('mouseleave', () => {
+                svgContainer.style.transform = "translateX(-50%) scale(1)";
+                svgContainer.style.boxShadow = "none"; // 恢复原来的样式
+            })
+            svgContainer.addEventListener('mousedown', () => {
+                svgContainer.style.transform = "translateX(-50%) scale(0.9)"; // 按下时缩小
+                svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+            });
+            svgContainer.addEventListener('mouseup', () => {
+                svgContainer.style.transform = "translateX(-50%) scale(1)"; // 按下时缩小
+                svgContainer.style.boxShadow = "0 0 5px rgba(17,183,234,0.5)"; // 按下时阴影
+            });
+        }
+
+        setTimeout(() => {
+            svgContainer.style.transform = msgContentContainer?.classList.contains('container--others') ?
+                "translateX(50%)" : "translateX(-50%)";
+            svgContainer.style.opacity = "0.9";
+            svgContainer.style.border = "2px solid #66ccff";
+        }, 100);
+
+        plusOneListener(svgContainer)//添加事件监听器。
+
+        // console.log(pluginName + '+1tag添加成功')
+    } catch (e) {
+
     }
-
-    setTimeout(() => {
-        svgContainer.style.transform = msgContentContainer?.classList.contains('container--others') ?
-            "translateX(50%)" : "translateX(-50%)";
-        svgContainer.style.opacity = "0.9";
-        svgContainer.style.border = "2px solid #66ccff";
-    }, 100);
-
-    plusOneListener(svgContainer)//添加事件监听器。
-
-    // console.log(pluginName + '+1tag添加成功')
 }
 
 
