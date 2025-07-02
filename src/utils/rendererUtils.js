@@ -189,7 +189,14 @@ function plusOneListener(svgContainer) {
     svgContainer.addEventListener('click', async () => {
         //准备复读并发送消息.
         const msgID = svgContainer.closest('.ml-item').id
-        const curAioData = app.__vue_app__.config.globalProperties.$store.state.common_Aio.curAioData
+        //新版拿不到这个curAioData了，那先看看有没有什么账号消息吧
+        console.log("一些基本信息如下：",app.__vue_app__)
+        //老版本的curAioData位置
+        let curAioData = app.__vue_app__.config.globalProperties?.$store?.state?.common_Aio?.curAioData
+        //新版本的curAioData位置
+        if(!curAioData) //天哪让我们来点魔法！
+            curAioData=app._vnode.component.appContext.app.config.globalProperties.$dt.pageManager.pageMap.pg_aio_pc.pageRoot.__VUE__[0].subTree.children[1].children[0].children[1].component.ctx.msgAction.curAioData
+
         const peerUid = curAioData.header.uid
         const chatType = curAioData.chatType
         //console.log('拿到的消息ID为' + msgID)
@@ -269,3 +276,33 @@ const textElement = {
         atNtUid: ''
     }
 }
+
+
+function findObjectByKey(obj, key, path = 'window', visited = new Set()) {
+    if (!obj || typeof obj !== 'object' || visited.has(obj)) {
+        return;
+    }
+    visited.add(obj);
+
+    if (key in obj) {
+        console.log(`Found key "${key}" in object at path: ${path}`);
+        console.log('Object:', obj);
+        console.log('Value:', obj[key]);
+    }
+
+    for (const prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            const newPath = Array.isArray(obj) ? `${path}[${prop}]` : `${path}.${prop}`;
+            try {
+                findObjectByKey(obj[prop], key, newPath, visited);
+            } catch (e) {
+                // Ignore errors from accessing certain properties
+            }
+        }
+    }
+}
+
+// console.log('Starting global search for "curAioData"... This may take a while.');
+// // 我们不直接从 window 开始，而是从可能性最大的 app 对象开始，以提高效率
+// findObjectByKey(app, 'curAioData', 'app');
+// console.log('Search finished.');
