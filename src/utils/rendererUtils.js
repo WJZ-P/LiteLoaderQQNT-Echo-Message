@@ -190,18 +190,22 @@ function plusOneListener(svgContainer) {
         //准备复读并发送消息.
         const msgID = svgContainer.closest('.ml-item').id
         //新版拿不到这个curAioData了，那先看看有没有什么账号消息吧
-        console.log("一些基本信息如下：",app.__vue_app__)
+        console.log("一些基本信息如下：", app.__vue_app__)
         //老版本的curAioData位置
         let curAioData = app.__vue_app__.config.globalProperties?.$store?.state?.common_Aio?.curAioData
         //新版本的curAioData位置
-        if(!curAioData) //天哪让我们来点魔法！
-            curAioData=app._vnode.component.appContext.app.config.globalProperties.$dt.pageManager.pageMap.pg_aio_pc.pageRoot.__VUE__[0].subTree.children[1].children[0].children[1].component.ctx.msgAction.curAioData
+        if (!curAioData) //天哪让我们来点魔法！
+            curAioData = app._vnode.component.appContext.app.config.globalProperties.$dt.pageManager.pageMap
+                .pg_aio_pc.pageRoot.__VUE__[0].subTree.children[1].children[0].children[1]
+                .component.ctx.msgAction.curAioData
 
         const peerUid = curAioData.header.uid
         const chatType = curAioData.chatType
         //console.log('拿到的消息ID为' + msgID)
         //发送IPC消息
-        await window.echo_message.invokeNative("ns-ntApi", "nodeIKernelMsgService/forwardMsgWithComment", false, window.webContentId,
+
+        //基于新版进行修改。
+        window.echo_message.invokeNative("ntApi", "nodeIKernelMsgService/forwardMsgWithComment", window.webContentId,
             {
                 "msgIds": [msgID],
                 "msgAttributeInfos": new Map(),
@@ -209,6 +213,11 @@ function plusOneListener(svgContainer) {
                 "dstContacts": [{"chatType": chatType, "peerUid": peerUid, "guildId": ""}],
                 "commentElements": []
             }, null)
+            .then(result => {
+                console.log('消息转发成功, 返回结果:', result);
+            }).catch(error => {
+            console.error('消息转发失败:', error);
+        });
     })
 }
 
@@ -276,6 +285,28 @@ const textElement = {
         atNtUid: ''
     }
 }
+
+const success = [{
+    "senderFrame": {},
+    "frameId": 1,
+    "processId": 6,
+    "frameTreeNodeId": 3
+}, false, "RM_IPCFROM_RENDERER3", [{
+    "type": "request",
+    "callbackId": "16102db9-dca5-45fd-8b28-3cead14512a6",
+    "eventName": "ntApi",
+    "peerId": 3
+}, {
+    "cmdName": "nodeIKernelMsgService/forwardMsgWithComment",
+    "cmdType": "invoke",
+    "payload": [{
+        "msgIds": ["7596720489687103620"],
+        "srcContact": {"chatType": 2, "peerUid": "934773893", "guildId": ""},
+        "dstContacts": [{"chatType": 2, "peerUid": "934773893", "guildId": ""}],
+        "commentElements": [],
+        "msgAttributeInfos": {}
+    }, null]
+}]]
 
 
 function findObjectByKey(obj, key, path = 'window', visited = new Set()) {
