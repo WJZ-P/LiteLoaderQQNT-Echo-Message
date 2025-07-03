@@ -189,7 +189,7 @@ function plusOneListener(svgContainer) {
         //准备复读并发送消息.
         const msgID = svgContainer.closest('.ml-item').id
         //新版拿不到这个curAioData了，那先看看有没有什么账号消息吧
-        console.log("一些基本信息如下：", app.__vue_app__)
+        //console.log("一些基本信息如下：", app.__vue_app__)
         //老版本的curAioData位置
         let curAioData = app.__vue_app__.config.globalProperties?.$store?.state?.common_Aio?.curAioData
         //新版本的curAioData位置
