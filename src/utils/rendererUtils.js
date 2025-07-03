@@ -36,6 +36,9 @@ class ListenerHandler {
 }
 
 export async function messageRenderer(allChats) {
+    //新版qq，这个allChats反过来了，reverse一下
+    //console.log(allChats)
+    allChats = Array.from(allChats).reverse(); // 转数组再反转
 
     for (let i = 0; i < allChats.length; i++) {
         const msgContentContainer = allChats[i]?.querySelector('.msg-content-container')
@@ -75,8 +78,7 @@ function msgChecker(prevMsgContent, currentMsgContent, nextMsgContent) {
     const currentMsgs = msgExtractor(currentMsgContent)
     const nextMsgs = msgExtractor(nextMsgContent)
     //console.log(JSON.stringify(prevMsgs), JSON.stringify(currentMsgs), JSON.stringify(nextMsgs))
-    return JSON.stringify(nextMsgs) === JSON.stringify(currentMsgs) &&
-        JSON.stringify(currentMsgs) !== JSON.stringify(prevMsgs)
+    return JSON.stringify(nextMsgs) === JSON.stringify(currentMsgs) && JSON.stringify(currentMsgs) !== JSON.stringify(prevMsgs)
 }
 
 /**
@@ -86,9 +88,7 @@ function msgChecker(prevMsgContent, currentMsgContent, nextMsgContent) {
  */
 function msgExtractor(msgContent) {
     if (!msgContent?.querySelectorAll) return []
-    return [...(Array.from(msgContent?.querySelectorAll('.text-normal')).map(textElement => textElement?.innerText)),
-        ...(Array.from(msgContent?.querySelectorAll('.image-content')).map(imgElement => imgElement?.src)),
-        ...(Array.from(msgContent?.querySelectorAll('.markdown-element')).map(markdownElement => markdownElement.children))]
+    return [...(Array.from(msgContent?.querySelectorAll('.text-normal')).map(textElement => textElement?.innerText)), ...(Array.from(msgContent?.querySelectorAll('.image-content')).map(imgElement => imgElement?.src)), ...(Array.from(msgContent?.querySelectorAll('.markdown-element')).map(markdownElement => markdownElement.children))]
 }
 
 /**
@@ -152,8 +152,7 @@ function appendPlusOneTag(msgContentContainer) {
         }
 
         setTimeout(() => {
-            svgContainer.style.transform = msgContentContainer?.classList.contains('container--others') ?
-                "translateX(50%)" : "translateX(-50%)";
+            svgContainer.style.transform = msgContentContainer?.classList.contains('container--others') ? "translateX(50%)" : "translateX(-50%)";
             svgContainer.style.opacity = "0.9";
             svgContainer.style.border = "2px solid #66ccff";
         }, 100);
@@ -195,9 +194,7 @@ function plusOneListener(svgContainer) {
         let curAioData = app.__vue_app__.config.globalProperties?.$store?.state?.common_Aio?.curAioData
         //新版本的curAioData位置
         if (!curAioData) //天哪让我们来点魔法！
-            curAioData = app._vnode.component.appContext.app.config.globalProperties.$dt.pageManager.pageMap
-                .pg_aio_pc.pageRoot.__VUE__[0].subTree.children[1].children[0].children[1]
-                .component.ctx.msgAction.curAioData
+            curAioData = app.__vue_app__.config.globalProperties.$dt.pageManager.pageMap.pg_aio_pc.pageRoot.__VUE__[0].proxy.aioStore.curAioData
 
         const peerUid = curAioData.header.uid
         const chatType = curAioData.chatType
@@ -205,14 +202,13 @@ function plusOneListener(svgContainer) {
         //发送IPC消息
 
         //基于新版进行修改。
-        window.echo_message.invokeNative("ntApi", "nodeIKernelMsgService/forwardMsgWithComment", window.webContentId,
-            {
-                "msgIds": [msgID],
-                "msgAttributeInfos": new Map(),
-                "srcContact": {"chatType": chatType, "peerUid": peerUid, "guildId": ""},
-                "dstContacts": [{"chatType": chatType, "peerUid": peerUid, "guildId": ""}],
-                "commentElements": []
-            }, null)
+        window.echo_message.invokeNative("ntApi", "nodeIKernelMsgService/forwardMsgWithComment", window.webContentId, {
+            "msgIds": [msgID],
+            "msgAttributeInfos": new Map(),
+            "srcContact": {"chatType": chatType, "peerUid": peerUid, "guildId": ""},
+            "dstContacts": [{"chatType": chatType, "peerUid": peerUid, "guildId": ""}],
+            "commentElements": []
+        }, null)
             .then(result => {
                 console.log('消息转发成功, 返回结果:', result);
             }).catch(error => {
@@ -275,31 +271,17 @@ export function patchCss() {
 }
 
 const textElement = {
-    elementType: 1,
-    elementId: '',
-    textElement: {
-        content: '',
-        atType: 0,
-        atUid: '',
-        atTinyId: '',
-        atNtUid: ''
+    elementType: 1, elementId: '', textElement: {
+        content: '', atType: 0, atUid: '', atTinyId: '', atNtUid: ''
     }
 }
 
 const success = [{
-    "senderFrame": {},
-    "frameId": 1,
-    "processId": 6,
-    "frameTreeNodeId": 3
+    "senderFrame": {}, "frameId": 1, "processId": 6, "frameTreeNodeId": 3
 }, false, "RM_IPCFROM_RENDERER3", [{
-    "type": "request",
-    "callbackId": "16102db9-dca5-45fd-8b28-3cead14512a6",
-    "eventName": "ntApi",
-    "peerId": 3
+    "type": "request", "callbackId": "16102db9-dca5-45fd-8b28-3cead14512a6", "eventName": "ntApi", "peerId": 3
 }, {
-    "cmdName": "nodeIKernelMsgService/forwardMsgWithComment",
-    "cmdType": "invoke",
-    "payload": [{
+    "cmdName": "nodeIKernelMsgService/forwardMsgWithComment", "cmdType": "invoke", "payload": [{
         "msgIds": ["7596720489687103620"],
         "srcContact": {"chatType": 2, "peerUid": "934773893", "guildId": ""},
         "dstContacts": [{"chatType": 2, "peerUid": "934773893", "guildId": ""}],
@@ -309,31 +291,83 @@ const success = [{
 }]]
 
 
-function findObjectByKey(obj, key, path = 'window', visited = new Set()) {
-    if (!obj || typeof obj !== 'object' || visited.has(obj)) {
-        return;
-    }
-    visited.add(obj);
+/**
+ * [V3 优化版] - 查找对象中某个 key 的最短可访问路径
+ *
+ * 该算法使用广度优先搜索 (BFS) 来保证找到的路径层级最浅。
+ * 它会忽略 Vue 内部的响应式依赖属性（如 dep, __v_raw, _value 等），
+ * 从而避免产生超长的无效路径。
+ *
+ * @param {object} rootObject - 搜索的起始对象，例如 `app` 或 `window`。
+ * @param {string} targetKey - 要查找的属性名，例如 "curAioData"。
+ * @returns {string|null} - 返回最短的可访问路径字符串，如果找不到则返回 null。
+ */
+function findShortestPath(rootObject, targetKey) {
+    console.log(`🚀 开始搜索 "${targetKey}" 的最短路径...`);
 
-    if (key in obj) {
-        console.log(`Found key "${key}" in object at path: ${path}`);
-        console.log('Object:', obj);
-        console.log('Value:', obj[key]);
-    }
+    // 定义需要忽略的属性名，这些通常是框架内部或循环引用的属性
+    const ignoreProps = new Set([
+        'dep', '__v_raw', '__v_skip', '_value', '__ob__',
+        'prevDep', 'nextDep', 'prevSub', 'nextSub', 'deps', 'subs',
+        '__vueParentComponent', 'parent', 'provides'
+    ]);
 
-    for (const prop in obj) {
-        if (obj.hasOwnProperty(prop)) {
-            const newPath = Array.isArray(obj) ? `${path}[${prop}]` : `${path}.${prop}`;
+    // 使用广度优先搜索 (BFS)
+    const queue = [{obj: rootObject, path: 'app'}]; // 队列中存储对象及其路径
+    const visited = new Set(); // 存储已经访问过的对象，防止循环引用
+
+    visited.add(rootObject);
+
+    while (queue.length > 0) {
+        const {obj, path} = queue.shift(); // 取出队列头的元素
+
+        // 检查当前对象是否直接包含目标 key
+        if (obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, targetKey)) {
+            const finalPath = `${path}.${targetKey}`;
+            console.log(`✅ 成功! 找到最短路径:`);
+            console.log(`%c${finalPath}`, 'color: #4CAF50; font-weight: bold; font-size: 14px;');
+
+            // 验证路径是否真的可访问
             try {
-                findObjectByKey(obj[prop], key, newPath, visited);
+                if (eval(finalPath) === obj[targetKey]) {
+                    console.log("路径验证成功！");
+                    return finalPath;
+                }
             } catch (e) {
-                // Ignore errors from accessing certain properties
+                console.warn(`找到路径 "${finalPath}"，但无法通过 eval 访问。继续搜索...`);
+            }
+        }
+
+        // 将子属性加入队列
+        for (const prop in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                // 跳过需要忽略的属性
+                if (ignoreProps.has(prop)) {
+                    continue;
+                }
+
+                const childObj = obj[prop];
+
+                // 如果子属性是对象且未被访问过，则加入队列
+                if (childObj && typeof childObj === 'object' && !visited.has(childObj)) {
+                    visited.add(childObj);
+                    const newPath = Array.isArray(obj) ? `${path}[${prop}]` : `${path}.${prop}`;
+                    queue.push({obj: childObj, path: newPath});
+                }
             }
         }
     }
+
+    console.log(`❌ 搜索完成，未找到 "${targetKey}" 的可访问路径。`);
+    return null;
 }
 
-// console.log('Starting global search for "curAioData"... This may take a while.');
-// // 我们不直接从 window 开始，而是从可能性最大的 app 对象开始，以提高效率
-// findObjectByKey(app, 'curAioData', 'app');
-// console.log('Search finished.');
+// --- 如何使用 ---
+
+// 假设 app 依然是你的 Vue 应用根对象
+// const shortestPath = findShortestPath(app, 'curAioData');
+
+// if (shortestPath) {
+//     console.log("你可以通过以下方式访问数据:");
+//     console.log(`const data = ${shortestPath}`);
+// }
