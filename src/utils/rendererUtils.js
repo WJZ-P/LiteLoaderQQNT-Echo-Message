@@ -184,18 +184,78 @@ function removePlusOneTag(msgContentContainer) {
 
 }
 
+let cachedCurAioDataPath = null;
+
+/**
+ * 根据字符串路径安全地从对象中获取嵌套值。
+ * @param {object} rootObject - 开始查找的根对象，例如 window 或 app。
+ * @param {string} path - 要访问的路径，例如 'user.profile.name' 或 'user.friends[0]'。
+ * @returns {any|undefined} 返回找到的值，如果路径无效则返回 undefined。
+ */
+function getValueByPath(rootObject, path) {
+    if (!path || typeof path !== 'string') {
+        return undefined;
+    }
+    // 将路径 'a.b[0].c' 转换为 ['a', 'b', '0', 'c']
+    const keys = path.replace(/\[(\w+)\]/g, '.$1').replace(/^\./, '').split('.');
+
+    let result = rootObject;
+    for (const key of keys) {
+        if (result === null || typeof result !== 'object') {
+            return undefined;
+        }
+        result = result[key];
+    }
+    return result;
+}
+
 function plusOneListener(svgContainer) {
     svgContainer.addEventListener('click', async () => {
+        let curAioData;
+        console.log("--- 开始获取 curAioData ---");
+
+        // 1. [优先] 尝试使用缓存的路径
+        if (cachedCurAioDataPath) {
+            curAioData = getValueByPath(window, cachedCurAioDataPath); // 假设根对象是 window
+            if (curAioData) {
+                console.log(`✅ 成功从缓存路径获取: ${cachedCurAioDataPath}`);
+            } else {
+                console.warn(`⚠️ 缓存路径 "${cachedCurAioDataPath}" 已失效。`);
+            }
+        }
+
+        // 2. [回退] 如果缓存路径失效或不存在，尝试已知的固定路径
+        if (!curAioData) {
+            console.log("... 尝试已知路径 1 (老版本)");
+            curAioData = app?.__vue_app__?.config?.globalProperties?.$store?.state?.common_Aio?.curAioData;
+        }
+        if (!curAioData) {
+            console.log("... 尝试已知路径 2 (新版本)");
+            curAioData = app?.__vue_app__?.config?.globalProperties?.$dt?.pageManager?.pageMap?.pg_aio_pc?.pageRoot?.__VUE__?.[0]?.proxy?.aioStore?.curAioData;
+        }
+
+        // 3. [最后手段] 如果所有已知路径都失败，则执行搜索
+        if (!curAioData) {
+            console.log("... 所有已知路径均失败，开始执行全局搜索...");
+            const result = findShortestPathAndValue(app, "curAioData");
+            if (result && result.value) {
+                curAioData = result.value;
+                // 找到后，立即更新缓存！
+                cachedCurAioDataPath = result.path;
+                console.log(`✅ 搜索成功！已缓存新路径: ${cachedCurAioDataPath}`);
+            }
+        }
+
+        // 4. 最终检查
+        if (!curAioData) {
+            console.error("❌ 致命错误: 所有方法都未能获取到 curAioData。无法执行复读操作。");
+            return; // 中断执行
+        }
+
+        console.log("--- 获取成功, 准备转发消息 ---", curAioData);
+
         //准备复读并发送消息.
         const msgID = svgContainer.closest('.ml-item').id
-        //新版拿不到这个curAioData了，那先看看有没有什么账号消息吧
-        //console.log("一些基本信息如下：", app.__vue_app__)
-        //老版本的curAioData位置
-        let curAioData = app.__vue_app__.config.globalProperties?.$store?.state?.common_Aio?.curAioData
-        //新版本的curAioData位置
-        if (!curAioData) //天哪让我们来点魔法！
-            curAioData = app.__vue_app__.config.globalProperties.$dt.pageManager.pageMap.pg_aio_pc.pageRoot.__VUE__[0].proxy.aioStore.curAioData
-
         const peerUid = curAioData.header.uid
         const chatType = curAioData.chatType
         //console.log('拿到的消息ID为' + msgID)
@@ -290,9 +350,8 @@ const success = [{
     }, null]
 }]]
 
-
 /**
- * [V3 优化版] - 查找对象中某个 key 的最短可访问路径
+ * [V4 优化版] - 查找对象中某个 key 的最短可访问路径及其对应的值
  *
  * 该算法使用广度优先搜索 (BFS) 来保证找到的路径层级最浅。
  * 它会忽略 Vue 内部的响应式依赖属性（如 dep, __v_raw, _value 等），
@@ -300,12 +359,12 @@ const success = [{
  *
  * @param {object} rootObject - 搜索的起始对象，例如 `app` 或 `window`。
  * @param {string} targetKey - 要查找的属性名，例如 "curAioData"。
- * @returns {string|null} - 返回最短的可访问路径字符串，如果找不到则返回 null。
+ * @returns {{path: string, value: any}|null} - 返回一个包含最短路径和对应值的对象，如果找不到则返回 null。
  */
-function findShortestPath(rootObject, targetKey) {
-    console.log(`🚀 开始搜索 "${targetKey}" 的最短路径...`);
+function findShortestPathAndValue(rootObject, targetKey) {
+    console.log(`🚀 开始搜索 "${targetKey}" 的最短路径和值...`);
 
-    // 定义需要忽略的属性名，这些通常是框架内部或循环引用的属性
+    // 定义需要忽略的属性名
     const ignoreProps = new Set([
         'dep', '__v_raw', '__v_skip', '_value', '__ob__',
         'prevDep', 'nextDep', 'prevSub', 'nextSub', 'deps', 'subs',
@@ -324,14 +383,19 @@ function findShortestPath(rootObject, targetKey) {
         // 检查当前对象是否直接包含目标 key
         if (obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, targetKey)) {
             const finalPath = `${path}.${targetKey}`;
+            const finalValue = obj[targetKey]; // 【新】获取找到的值
+
             console.log(`✅ 成功! 找到最短路径:`);
             console.log(`%c${finalPath}`, 'color: #4CAF50; font-weight: bold; font-size: 14px;');
+            console.log('✅ 对应的值为:', finalValue);
+
 
             // 验证路径是否真的可访问
             try {
-                if (eval(finalPath) === obj[targetKey]) {
+                if (eval(finalPath) === finalValue) {
                     console.log("路径验证成功！");
-                    return finalPath;
+                    // 【修改点】返回一个包含路径和值的对象
+                    return { path: finalPath, value: finalValue };
                 }
             } catch (e) {
                 console.warn(`找到路径 "${finalPath}"，但无法通过 eval 访问。继续搜索...`);
@@ -341,14 +405,12 @@ function findShortestPath(rootObject, targetKey) {
         // 将子属性加入队列
         for (const prop in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                // 跳过需要忽略的属性
                 if (ignoreProps.has(prop)) {
                     continue;
                 }
 
                 const childObj = obj[prop];
 
-                // 如果子属性是对象且未被访问过，则加入队列
                 if (childObj && typeof childObj === 'object' && !visited.has(childObj)) {
                     visited.add(childObj);
                     const newPath = Array.isArray(obj) ? `${path}[${prop}]` : `${path}.${prop}`;
@@ -361,6 +423,7 @@ function findShortestPath(rootObject, targetKey) {
     console.log(`❌ 搜索完成，未找到 "${targetKey}" 的可访问路径。`);
     return null;
 }
+
 
 // --- 如何使用 ---
 
